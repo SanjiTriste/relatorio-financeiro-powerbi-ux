@@ -29,6 +29,13 @@ d.rectangle([p(12),p(44),p(116),p(52)],fill=W)
 d.rectangle([p(54),p(44),p(62),p(110)],fill=W)
 d.rectangle([p(12),p(76),p(116),p(82)],fill=W)
 fin(im,'icon_detail.png')
+# story: speech bubble with lines
+im,d=canvas()
+d.rounded_rectangle([p(12),p(16),p(116),p(90)],radius=p(14),outline=W,width=p(7))
+d.polygon([(p(36),p(88)),(p(36),p(116)),(p(64),p(90))],fill=W)
+for y,x2 in [(40,98),(56,98),(72,74)]:
+    d.rounded_rectangle([p(30),p(y-3),p(x2),p(y+3)],radius=p(3),fill=W)
+fin(im,'icon_story.png')
 # logo from cover bg
 src=Image.open('/home/claude/in/x_p2/Report/StaticResources/RegisteredResources/Explorar_an_lise_(1)7854686485638407.png').convert('RGB').crop((98,98,332,204))
 a=np.array(src).astype(float); lum=a.mean(axis=2)

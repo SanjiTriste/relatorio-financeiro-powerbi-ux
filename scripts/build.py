@@ -27,6 +27,7 @@ SEG = {'Government': '#F5C518', 'Midmarket': '#E8588F', 'Channel Partners': '#8F
 PG_HOME = 'ReportSection3ee2a4126027e0713e1d'
 PG_OVER = 'ReportSection'
 PG_DET = 'ReportSection5e4ef9ee0e160b92ecde'
+PG_STORY = 'ReportSectionb5a1c7e93d2f4a6e8c01'
 
 def make_container(name, x, y, w, h, z, tab, single, parent=None, extra=None, query=None, dt=None):
     pos = {"x": x, "y": y, "z": z, "width": w, "height": h, "tabOrder": tab}
@@ -240,8 +241,8 @@ def matrix(x, y, w, h, z, tab):
     return make_container(name, x, y, w, h, z, tab, sv, None, query=qs, dt=dumps(dt))
 
 # ---------- sidebar ----------
-RES = {'home': 'icon_home9001.png', 'overview': 'icon_overview9002.png', 'detail': 'icon_detail9003.png', 'logo': 'logo_dio9004.png'}
-NAV = [('home', 'Home', PG_HOME), ('overview', 'Visão geral', PG_OVER), ('detail', 'Detalhes', PG_DET)]
+RES = {'home': 'icon_home9001.png', 'overview': 'icon_overview9002.png', 'detail': 'icon_detail9003.png', 'story': 'icon_story9005.png', 'logo': 'logo_dio9004.png'}
+NAV = [('home', 'Home', PG_HOME), ('overview', 'Visão geral', PG_OVER), ('detail', 'Detalhes', PG_DET), ('story', 'História', PG_STORY)]
 PIN_ITEM = 'Untitled_design_(4)560860300455668.png'
 DIO_URL = 'https://web.dio.me/play?section_type=formation&tab=programas'
 
@@ -462,6 +463,150 @@ j['sections'].append(sec3)
 j['sections'][0]['ordinal'] = 0; ov['ordinal'] = 1
 
 # =====================================================================
+# PAGE 4: HISTORIA (storytelling) - alternancia por favoritos
+# =====================================================================
+def rich(x, y, w, h, z, tab, paras):
+    ps = []
+    for runs, gap in paras:
+        tr = []
+        for text, size, bold, color in runs:
+            st = {"fontSize": "%spt" % size, "color": color}
+            if bold: st["fontWeight"] = "bold"
+            tr.append({"value": text, "textStyle": st})
+        ps.append({"textRuns": tr, "horizontalTextAlignment": "left"})
+    sv = {"visualType": "textbox", "drillFilterOtherVisuals": True,
+          "objects": {"general": [{"properties": {"paragraphs": ps}}]},
+          "vcObjects": {"background": [{"properties": {"show": B(False)}}]}}
+    return make_container(newid(), x, y, w, h, z, tab, sv)
+
+def area_clone(meas, color, x, y, w, h, z, tab):
+    base = copy.deepcopy(byname['525d8f28a5f711cc3f1f'])
+    disp = meas
+    def fix(s):
+        s = s.replace('Sum(financials. Sales)', 'Sum(financials.%s)' % meas)
+        s = s.replace('Soma de  Sales', 'Soma de %s' % meas)
+        return s.replace('" Sales"', '"%s"' % meas)
+    cont = {k: base[k] for k in ('config', 'query', 'dataTransforms')}
+    for k in cont: cont[k] = fix(cont[k])
+    cont.update(x=x, y=y, width=w, height=h, z=z, tabOrder=tab, filters='[]')
+    def f(c):
+        c['name'] = newid(); c.pop('parentGroupName', None)
+        p = c['layouts'][0]['position']; p.update(x=x, y=y, width=w, height=h, z=z, tabOrder=tab)
+        o = c['singleVisual']['objects']
+        o['dataPoint'] = [{"properties": {"fill": C(color)}}]
+        o['valueAxis'] = [{"properties": {"labelColor": C(WHITE), "gridlineColor": C('#6A4A9A'), "showAxisTitle": B(False)}}]
+        o['categoryAxis'] = [{"properties": {"labelColor": C(WHITE), "showAxisTitle": B(False)}}]
+        c['singleVisual']['vcObjects']['title'] = [{"properties": {"show": B(False)}}]
+    edit(cont, f)
+    assert ' Sales' not in cont['config'] or meas == ' Sales'
+    return cont
+
+def nm(cont): return json.loads(cont['config'])['name']
+def vt(cont): return json.loads(cont['config'])['singleVisual']['visualType']
+def hide(cont): edit(cont, lambda c: c.__setitem__('isHidden', True))
+
+st = []
+bg4 = g('5cca43fb4a592e1ed969'); set_pos(bg4, 0, 0, 1280, 720, 0, 0)
+edit(bg4, lambda c: c.__setitem__('name', newid())); st.append(bg4)
+st.append(textbox(CX, 20, 900, 44, 1000, 1000, 'Vender mais não é lucrar mais', 26, True, WHITE, 'left'))
+st.append(textbox(CX, 62, 1000, 26, 1010, 1010, 'Vendas e lucro por segmento, país e produto  |  setembro de 2013 a dezembro de 2014', 12, False, SOFT, 'left'))
+
+R1Y, R1H = 98, 264; R2Y, R2H = 376, 256; NW = 416; VX = CX + NW + 14; VW = CW - NW - 14
+def panel(x, y, w, h, z): return shape(x, y, w, h, z, z, PANEL, PANEL_T, 14)
+
+# narrative 1
+st.append(panel(CX, R1Y, NW, R1H, 1100))
+st.append(rich(CX + 18, R1Y + 12, NW - 36, R1H - 24, 1110, 1110, [
+    ([("CAPÍTULO 1  |  QUEM GERA O LUCRO?", 10, True, PINK)], 0),
+    ([("Government sustenta o resultado", 17, True, WHITE)], 0),
+    ([("• Government: 44% das vendas e 67% do lucro.", 11, False, WHITE)], 0),
+    ([("• Enterprise: 16,5% das vendas, mas lucro negativo (-0,6 mi).", 11, False, WHITE)], 0),
+    ([("• Channel Partners: só 1,5% das vendas, com a maior margem (73%).", 11, False, WHITE)], 0),
+    ([("• Por país, as vendas são parecidas; França e Alemanha têm as melhores margens (cerca de 15,5%).", 11, False, WHITE)], 0),
+    ([("• Por produto, Paseo lidera com 28% do lucro.", 11, False, WHITE)], 0),
+    ([("Troque a categoria nos botões ao lado.", 10, False, SOFT)], 0)]))
+# visual 1: parametro de categoria (Segmento | Pais | Produto)
+st.append(panel(VX, R1Y, VW, R1H, 1200))
+st.append(textbox(VX + 16, R1Y + 10, 300, 28, 1210, 1210, 'Lucro por categoria', 14, True, WHITE, 'left'))
+cats = [('Segmento', 'Segment'), ('País', 'Country'), ('Produto', 'Product')]
+v1 = []
+for i, (lab, c) in enumerate(cats):
+    ch = chart('clusteredBarChart', VX + 8, R1Y + 44, VW - 16, R1H - 52, 1220 + i, 1220 + i, c, 'Profit', PINK)
+    if c == 'Segment':
+        edit(ch, lambda cc: cc['singleVisual']['objects'].__setitem__('dataPoint', [{"properties": {"showAllDataPoints": B(True)}}] + seg_points()))
+    if i: hide(ch)
+    v1.append(ch)
+st += v1
+def toggles(base_x, y, labels, z0, hidden_first=False, wbtn=76, gap=6, link_bms=None):
+    pills = []; btns = []
+    for i, lab in enumerate(labels):
+        x = base_x + i * (wbtn + gap)
+        st.append(shape(x, y, wbtn, 26, z0 + i * 10, z0 + i * 10, WHITE, 86, 12))
+        pk = shape(x, y, wbtn, 26, z0 + i * 10 + 3, z0 + i * 10 + 3, PINK, 0, 12)
+        if i: hide(pk)
+        st.append(pk); pills.append(pk)
+        btns.append((x, lab, z0 + i * 10 + 6))
+    return pills, btns
+tx1 = VX + VW - 16 - (3 * 76 + 2 * 6)
+pills1, btns1 = toggles(tx1, R1Y + 10, [c[0] for c in cats], 1300)
+BM1 = ['Bookmark' + newid() for _ in cats]
+for (x, lab, z), bmn in zip(btns1, BM1):
+    st.append(button(x, R1Y + 10, 76, 26, z, z, ('bookmark', bmn), lab, 10, WHITE, base=None, hover=(PINK_D, 30), press=(PINK_D, 0), rnd=12, alt='Ver lucro por ' + lab, bold=True))
+
+# narrative 2
+st.append(panel(CX, R2Y, NW, R2H, 1400))
+st.append(rich(CX + 18, R2Y + 12, NW - 36, R2H - 24, 1410, 1410, [
+    ([("CAPÍTULO 2  |  COMO O NEGÓCIO EVOLUIU?", 10, True, PINK)], 0),
+    ([("Crescemos em volume, não em margem", 17, True, WHITE)], 0),
+    ([("• 2014 somou 92,3 mi em vendas, contra 26,4 mi em 2013 (a base de 2013 começa em setembro).", 11, False, WHITE)], 0),
+    ([("• A margem ficou perto de 14%: o lucro cresceu na mesma proporção das vendas.", 11, False, WHITE)], 0),
+    ([("• Os picos de vendas foram outubro e dezembro de 2014.", 11, False, WHITE)], 0),
+    ([("Troque a métrica nos botões ao lado.", 10, False, SOFT)], 0)]))
+# visual 2: parametro de valores (Vendas | Lucro | Unidades | Descontos | Custo)
+st.append(panel(VX, R2Y, VW, R2H, 1500))
+st.append(textbox(VX + 16, R2Y + 10, 260, 28, 1510, 1510, 'Evolução mensal', 14, True, WHITE, 'left'))
+vals = [('Vendas', ' Sales', PINK), ('Lucro', 'Profit', '#F5C518'), ('Unidades', 'Units Sold', '#35C6B6'),
+        ('Descontos', 'Discounts', '#F4864A'), ('Custo', 'COGS', '#8F7CF0')]
+v2 = []
+for i, (lab, c, colr) in enumerate(vals):
+    ar4 = area_clone(c, colr, VX + 8, R2Y + 44, VW - 16, R2H - 52, 1520 + i, 1520 + i)
+    if i: hide(ar4)
+    v2.append(ar4)
+st += v2
+tx2 = VX + VW - 16 - (5 * 66 + 4 * 6)
+pills2, btns2 = toggles(tx2, R2Y + 10, [v[0] for v in vals], 1600, wbtn=66)
+BM2 = ['Bookmark' + newid() for _ in vals]
+for (x, lab, z), bmn in zip(btns2, BM2):
+    st.append(button(x, R2Y + 10, 66, 26, z, z, ('bookmark', bmn), lab, 9, WHITE, base=None, hover=(PINK_D, 30), press=(PINK_D, 0), rnd=12, alt='Ver ' + lab + ' por mês', bold=True))
+
+# conclusion strip
+st.append(shape(CX, 646, CW, 54, 1700, 1700, PANEL, PANEL_T, 14))
+st.append(shape(CX, 646, 6, 54, 1710, 1710, PINK, 0, 3))
+st.append(rich(CX + 22, 652, CW - 40, 44, 1720, 1720, [
+    ([("Conclusão: ", 12, True, PINK),
+      ("rever preço e custo do segmento Enterprise, que vende bem e dá prejuízo, e ampliar o canal Channel Partners, de margem alta, sem perder o ritmo de Government.", 12, False, WHITE)], 0)]))
+st += sidebar(PG_STORY, 20000, 20000)
+
+sec4 = {"name": PG_STORY, "displayName": "História", "filters": "[]", "ordinal": 3, "config": "{}", "displayOption": 1,
+        "width": 1280, "height": 720, "visualContainers": st}
+j['sections'].append(sec4)
+
+def view_bm(name, display, vis, pills, idx):
+    allv = vis + pills
+    vcs = {}
+    for k, cont in enumerate(allv):
+        grp = k % len(vis)
+        e = {"singleVisual": {"visualType": vt(cont), "objects": {}}}
+        if grp != idx: e["singleVisual"]["display"] = {"mode": "hidden"}
+        vcs[nm(cont)] = e
+    return {"displayName": display, "name": name,
+            "explorationState": {"version": "1.3", "activeSection": PG_STORY, "sections": {PG_STORY: {"visualContainers": vcs}},
+                                 "objects": {"merge": {"outspacePane": [{"properties": {"expanded": {"expr": {"Literal": {"Value": "false"}}}}}]}}},
+            "options": {"targetVisualNames": list(vcs.keys()), "suppressActiveSection": True, "suppressData": True}}
+STORY_BMS = [view_bm(BM1[i], 'História - Lucro por ' + cats[i][0], v1, pills1, i) for i in range(3)] + \
+            [view_bm(BM2[i], 'História - ' + vals[i][0], v2, pills2, i) for i in range(5)]
+
+# =====================================================================
 # BOOKMARKS
 # =====================================================================
 def clear_bm(name, display, page, slicer_names):
@@ -474,6 +619,7 @@ bms = [b for b in cfg['bookmarks'] if b['displayName'] not in ('Distribuição p
 bms.append(clear_bm(BM_CLEAN_OVER, 'Limpar período - Visão Geral', PG_OVER, ['ae85209b2ee41bd6e209']))
 sn = lambda cont: json.loads(cont['config'])['name']
 bms.append(clear_bm(BM_CLEAN_DET, 'Limpar filtros - Detalhamento', PG_DET, [sn(s_seg), sn(s_year)]))
+bms += STORY_BMS
 cfg['bookmarks'] = bms
 cfg['activeSectionIndex'] = 0
 j['config'] = dumps(cfg)
@@ -496,7 +642,7 @@ for info in zin.infolist():
     if info.filename == '[Content_Types].xml':
         data = re.sub(rb'<Override PartName="/SecurityBindings"[^>]*/>', b'', data)
     zout.writestr(info.filename, data, compress_type=info.compress_type)
-for key, fn in [('home', 'icon_home'), ('overview', 'icon_overview'), ('detail', 'icon_detail'), ('logo', 'logo_dio')]:
+for key, fn in [('home', 'icon_home'), ('overview', 'icon_overview'), ('detail', 'icon_detail'), ('story', 'icon_story'), ('logo', 'logo_dio')]:
     zout.writestr('Report/StaticResources/RegisteredResources/' + RES[key], open(f'/home/claude/build/assets/{fn}.png', 'rb').read())
 zout.close()
 print('built', OUT, os.path.getsize(OUT))
